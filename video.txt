@@ -1,0 +1,8 @@
+Link: https://www.youtube.com/watch?v=-0YuI8BHGYg
+(Timestamp is in the description of the video)
+0:00 - Starting the Server 
+0:21 - Starting the Clients 
+2:52 - follow 
+3:46 - drop 
+4:29 - query handles 
+5:00 - exit
