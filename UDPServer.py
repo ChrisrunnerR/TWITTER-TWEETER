@@ -100,6 +100,26 @@ def receive():
                 user_name = token[1]
                 user_toUnfollow = token[2]
                 userToUnfollow(user_name, user_toUnfollow, addr)
+            elif token[0] == "tweet":
+                user_name = token[1]
+                message_list = token[2::]
+                message_str = ''
+                message_str = message_str.join(message_list)
+                print("tweet message below")
+                print(message_str)
+                # Send the number of followers and handles
+                followers = follower_table[user_name]
+                no_of_followers = len(followers)
+                #server.sendto(f"{user_name} has {no_of_followers} followers!")
+                for foll in followers:
+                    temp = foll
+                    for usr in user_table:
+                        if temp == usr[0]:
+                            server.sendto(f"{usr}".encode(), addr)
+                server.sendto(f"{user_name} has {no_of_followers} followers!".encode(), addr) 
+                            
+
+
 
         except:
             print("\nerror")
