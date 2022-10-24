@@ -2,14 +2,10 @@ import socket
 import threading
 import queue
 
-notes = ''' 
-    1) Remember that all messages are in str, so you might have to convert stuff like port nums to int
-    2) Check for duplicate @handle when registering; 
-        return SUCCESS if we can register & no duplicated @handle
-        return FAIL if we can't register because there's a duplicate @handle
-    3) Data from "register" command is used to create the user table
-    4) Data from "follow" command is used to create the follower table
-     '''
+# TODO: 1) Fix the tweet (spaces were removed)
+# TODO: 2) Check the maximum length of the tweet (114 chars)
+# TODO: 3) Send the 'end tweet' signal to the tracker
+# TODO: 4) Make a video & finish the doc
 
 messages = queue.Queue()
 clients = []
@@ -27,9 +23,12 @@ user_table = []
 # Follower table
 follower_table = {}
 
+tweet_status = False
+
 # This function will run in a thread
 # This function is constantly accepting (receiving) the messages and storing them into messages queue data structure
 def receive():
+    global tweet_status
     user_handle = []
     while True:
         try:
@@ -100,25 +99,83 @@ def receive():
                 user_name = token[1]
                 user_toUnfollow = token[2]
                 userToUnfollow(user_name, user_toUnfollow, addr)
+
             elif token[0] == "tweet":
                 user_name = token[1]
                 message_list = token[2::]
                 message_str = ''
-                message_str = message_str.join(message_list)
-                print("tweet message below")
+                for msg in message_list:
+                    message_str += msg
+                    message_str += ' '
                 print(message_str)
-                # Send the number of followers and handles
                 followers = follower_table[user_name]
                 no_of_followers = len(followers)
-                #server.sendto(f"{user_name} has {no_of_followers} followers!")
-                for foll in followers:
-                    temp = foll
-                    for usr in user_table:
-                        if temp == usr[0]:
-                            server.sendto(f"{usr}".encode(), addr)
-                server.sendto(f"{user_name} has {no_of_followers} followers!".encode(), addr) 
-                            
+                if no_of_followers < 1 or len(message_str) > 140:
+                    server.sendto(f"FAILURE!! Check the size of ur tweet".encode(), addr)
+                    tweet_status = False
 
+                else:
+                    # Send the number of followers and handles
+                    server.sendto(f"{user_name} has {no_of_followers} follower(s):".encode(), addr)
+                    for foll in followers:
+                        temp = foll
+                        for usr in user_table:
+                            if temp == usr[0]:
+                                server.sendto(f"{tuple(usr)}".encode(), addr)
+
+                    # Sending the tweet to the followers of @current_handle
+                    # for foll in followers:
+                    #     temp = foll
+                    #     for usr in user_table:
+                    #         if temp == usr[0]:
+                    #             follower_ip = usr[1]
+                    #             follower_port = int(usr[2])
+                    #             print(f"Follower's Handle: {usr[0]}")
+                    #             print(f"Follower's IP: {follower_ip}")
+                    #             print(f"Follower's Port: {follower_port}")
+                    #             server.sendto(f'{message_str} from {usr[0]}'.encode(), (follower_ip, follower_port))
+                    #             print()
+
+                    for i in range(len(followers)):
+                        first_person = followers[0]
+                        flwr = followers[i]
+                        for j in range(len(user_table)):
+                            usr = user_table[j]
+                            if flwr == usr[0]:
+                                follower_ip = usr[1]
+                                follower_port = int(usr[2])
+
+                                print(f"\n--- @{user_name}'s FOLLOWERS' INFO---")
+                                print(f"Follower's Handle: {usr[0]}")
+                                print(f"Follower's IP: {follower_ip}")
+                                print(f"Follower's Receiving Port: {follower_port}\n")
+                                if i == 0:
+                                    server.sendto(f'{message_str} || from original sender: {user_name}'.encode(),
+                                                  (follower_ip, follower_port))
+                                    tweet_status = True
+                                    if (tweet_status == True):
+                                        server.sendto("TWEET WAS SUCCESSFUL!!".encode(), addr)
+                                    else:
+                                        server.sendto("TWEET FAILED!!".encode(), addr)
+                                else:
+                                    server.sendto(f'{message_str} from {followers[i - 1]}'.encode(),
+                                                  (follower_ip, follower_port))
+                                    tweet_status = True
+                                    if (tweet_status == True):
+                                        server.sendto("TWEET WAS SUCCESSFUL!!".encode(), addr)
+                                    else:
+                                        server.send("TWEET FAILED!!".encode(), addr)
+
+            elif token[0] == "end" and token[1] == "tweet":
+
+                    for usr in user_table:
+                        if user_name == usr[0]:
+                            user_ip = usr[1]
+                            user_port = int(usr[2])
+                    if(tweet_status == True):
+                        server.sendto("TWEET SUCCESSFULLY ENDED!!".encode(), addr)
+                    else:
+                        server.sendto("TWEET FAILED!!".encode(), addr)
 
 
         except:
