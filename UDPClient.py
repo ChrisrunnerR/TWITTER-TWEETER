@@ -32,7 +32,7 @@ while True:
     message = input("")
     if message == "exit":
         print("EXIT: SUCCESS!")
-        client.sendto("User f{host} has exited the program".encode(), (server_host, 9999))
+        client.sendto("ONE HOST HAS EXITED THE PROGRAM!".encode(), (server_host, 9999))
         exit()
     else:
         client.sendto(f"{message}".encode(), (server_host, 9999))
