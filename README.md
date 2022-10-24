@@ -30,13 +30,6 @@ Example: exit
 	•	Time-Space Diagram
 
 
-
-
-
-
-
-
-
 	•	Data Structures & Algorithms Used
 	- Queue is used to hold the messages, so it’s processed in the right (First-In-First-Out) order.
 	- List (array) is used to maintain the user table as it’s easy to sort a list and print it directly to the screen. We were considering the use of Hash-Map (dictionary), but we figured we didn’t need to access by keys in this case. Sorting is easy in list, but its time complexity is O(n log n).
